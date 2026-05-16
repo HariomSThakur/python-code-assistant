@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Code Assistant for Python Programming</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <header class="header">
+        <h1>Smart Code Assistant for Python Programming</h1>
+        <p class="subtitle">
+            Generate, review, fix, and understand code intelligently.
+        </p>
+    </header>
+
+    <form method="post" class="main-form">
+
+        <label for="user_input" class="input-label">
+            Prompt or Source Code
+        </label>
+
+        <textarea
+            name="user_input"
+            id="user_input"
+            placeholder="Write a prompt or paste your code here..."
+            spellcheck="false"
+        >{{ user_input }}</textarea>
+
+        <div class="buttons">
+            <button class="primary" type="submit" name="action" value="generate">
+                Generate Code
+            </button>
+
+            <button type="submit" name="action" value="review">
+                Review
+            </button>
+
+            <button type="submit" name="action" value="fix">
+                Auto-Fix
+            </button>
+
+            <button type="submit" name="action" value="error_explain">
+                Explain Errors
+            </button>
+
+            <button type="submit" name="action" value="program_explain">
+                Explain Logic
+            </button>
+
+            <button type="button" id="run-online-btn" onclick="openOnlineCompiler()">
+                ▶ Run Online
+            </button>
+
+            <button type="button" id="save-btn" onclick="saveOutput()">
+                💾 Save
+            </button>
+        </div>
+
+    </form>
+
+    <script>
+        function openOnlineCompiler() {
+            const code = document.getElementById('user_input').value.trim();
+            if (!code) {
+                alert("Please enter or generate some Python code first.");
+                return;
+            }
+            const encoded = encodeURIComponent(code);
+            const url = `https://www.onlinegdb.com/online_python_compiler#code=${encoded}`;
+            window.open(url, '_blank');
+        }
+
+        function saveOutput() {
+            const outputEl = document.querySelector('.output pre');
+            if (!outputEl) {
+                alert("No AI response to save yet. Generate or review code first.");
+                return;
+            }
+            const content = outputEl.innerText;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'code_assistant_output.py';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    </script>
+
+    {% if output %}
+    <section class="output" style="margin-top: 2.5rem;">
+        <h3>AI Response</h3>
+        <pre>{{ output }}</pre>
+    </section>
+    {% endif %}
+
+    <footer class="footer">
+        <p>Built by Hariom Thakur</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
