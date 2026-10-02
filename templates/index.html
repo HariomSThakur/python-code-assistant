@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Code Assistant for Python Programming</title>
+    <title>Python Code Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -11,9 +11,9 @@
 <div class="container">
 
     <header class="header">
-        <h1>Smart Code Assistant for Python Programming</h1>
+        <h1>Python Code Assistant</h1>
         <p class="subtitle">
-            Generate, review, fix, and understand code intelligently.
+            Explore Python examples, get syntax feedback, and see how code is structured.
         </p>
     </header>
 
@@ -28,7 +28,18 @@
             id="user_input"
             placeholder="Write a prompt or paste your code here..."
             spellcheck="false"
+            maxlength="{{ max_input_chars }}"
         >{{ user_input }}</textarea>
+
+        <div class="level-control">
+            <label for="extra_input">Explanation level</label>
+            <select name="extra_input" id="extra_input">
+                <option value="beginner" {% if extra_input == "beginner" %}selected{% endif %}>Beginner</option>
+                <option value="intermediate" {% if extra_input == "intermediate" %}selected{% endif %}>Intermediate</option>
+                <option value="advanced" {% if extra_input == "advanced" %}selected{% endif %}>Advanced</option>
+            </select>
+            <small>This setting is used by Explain Logic.</small>
+        </div>
 
         <div class="buttons">
             <button class="primary" type="submit" name="action" value="generate">
@@ -52,7 +63,7 @@
             </button>
 
             <button type="button" id="run-online-btn" onclick="openOnlineCompiler()">
-                ▶ Run Online
+                ▶ Open in OnlineGDB
             </button>
 
             <button type="button" id="save-btn" onclick="saveOutput()">
@@ -66,7 +77,7 @@
         function openOnlineCompiler() {
             const code = document.getElementById('user_input').value.trim();
             if (!code) {
-                alert("Please enter or generate some Python code first.");
+                alert("Paste Python code in the input box first.");
                 return;
             }
             const encoded = encodeURIComponent(code);
@@ -77,14 +88,14 @@
         function saveOutput() {
             const outputEl = document.querySelector('.output pre');
             if (!outputEl) {
-                alert("No AI response to save yet. Generate or review code first.");
+                alert("There is no output to download yet. Choose an action first.");
                 return;
             }
             const content = outputEl.innerText;
             const blob = new Blob([content], { type: 'text/plain' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'code_assistant_output.py';
+            a.download = 'python_assistant_output.txt';
             a.click();
             URL.revokeObjectURL(a.href);
         }
@@ -92,7 +103,7 @@
 
     {% if output %}
     <section class="output" style="margin-top: 2.5rem;">
-        <h3>AI Response</h3>
+        <h3>Assistant output</h3>
         <pre>{{ output }}</pre>
     </section>
     {% endif %}

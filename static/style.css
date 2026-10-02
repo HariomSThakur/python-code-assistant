@@ -17,7 +17,8 @@ body {
     color: #e5e7eb;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding: 24px 0;
 }
 
 /* =======================
@@ -112,6 +113,35 @@ textarea::placeholder {
 textarea:focus {
     border-color: #818cf8;
     box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+}
+
+.level-control {
+    display: grid;
+    grid-template-columns: 1fr minmax(180px, 260px);
+    align-items: center;
+    gap: 8px 16px;
+    margin-top: 18px;
+}
+
+.level-control label {
+    color: #cbd5f5;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.level-control select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    background: #111827;
+    color: #e5e7eb;
+    font: inherit;
+}
+
+.level-control small {
+    grid-column: 1 / -1;
+    color: #94a3b8;
 }
 
 /* =======================
@@ -316,6 +346,12 @@ pre[class*="language-"] {
     textarea {
         min-height: 200px;
     }
+    .level-control {
+        grid-template-columns: 1fr;
+    }
+    .level-control small {
+        grid-column: 1;
+    }
     .buttons {
         flex-direction: column;
         gap: 12px;
@@ -329,7 +365,8 @@ pre[class*="language-"] {
    FOCUS / ACCESSIBILITY
 ======================= */
 button:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
     outline: 3px solid #60a5fa;
     outline-offset: 2px;
 }
