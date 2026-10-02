@@ -1,118 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Code Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101522">
+  <meta name="description" content="A Python coding assistant with local analysis, optional AI models, saved projects, and clear explanations.">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>PyGuide — Python assistant</title>
 </head>
 <body>
-
-<div class="container">
-
-    <header class="header">
-        <h1>Python Code Assistant</h1>
-        <p class="subtitle">
-            Explore Python examples, get syntax feedback, and see how code is structured.
-        </p>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#assistant" aria-label="PyGuide home"><span class="brand-mark">{ }</span><span>pyguide<span class="brand-dot">.</span></span></a>
+      <div class="topbar-right">
+        <span id="model-badge" class="status-pill"><i></i> Checking model</span>
+        <button id="install-button" class="button button-quiet hidden" type="button">Install app</button>
+        <div id="account-area" class="account-area hidden"><span id="account-name"></span><button id="logout-button" class="button button-quiet" type="button">Sign out</button></div>
+      </div>
     </header>
 
-    <form method="post" class="main-form">
-
-        <label for="user_input" class="input-label">
-            Prompt or Source Code
-        </label>
-
-        <textarea
-            name="user_input"
-            id="user_input"
-            placeholder="Write a prompt or paste your code here..."
-            spellcheck="false"
-            maxlength="{{ max_input_chars }}"
-        >{{ user_input }}</textarea>
-
-        <div class="level-control">
-            <label for="extra_input">Explanation level</label>
-            <select name="extra_input" id="extra_input">
-                <option value="beginner" {% if extra_input == "beginner" %}selected{% endif %}>Beginner</option>
-                <option value="intermediate" {% if extra_input == "intermediate" %}selected{% endif %}>Intermediate</option>
-                <option value="advanced" {% if extra_input == "advanced" %}selected{% endif %}>Advanced</option>
-            </select>
-            <small>This setting is used by Explain Logic.</small>
+    <main>
+      <section id="auth-view" class="auth-layout hidden" aria-labelledby="auth-title">
+        <div class="auth-copy">
+          <p class="eyebrow">A practical Python workspace</p>
+          <h1>Write code.<br><span>Understand it.</span></h1>
+          <p>Get clear feedback, try an optional language model, and keep useful examples in your own projects.</p>
+          <div class="auth-points"><span>✦ Local code analysis</span><span>✦ Your own saved workspace</span><span>✦ Works on mobile</span></div>
         </div>
-
-        <div class="buttons">
-            <button class="primary" type="submit" name="action" value="generate">
-                Generate Code
-            </button>
-
-            <button type="submit" name="action" value="review">
-                Review
-            </button>
-
-            <button type="submit" name="action" value="fix">
-                Auto-Fix
-            </button>
-
-            <button type="submit" name="action" value="error_explain">
-                Explain Errors
-            </button>
-
-            <button type="submit" name="action" value="program_explain">
-                Explain Logic
-            </button>
-
-            <button type="button" id="run-online-btn" onclick="openOnlineCompiler()">
-                ▶ Open in OnlineGDB
-            </button>
-
-            <button type="button" id="save-btn" onclick="saveOutput()">
-                💾 Save
-            </button>
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist"><button class="auth-tab active" data-auth-mode="login" type="button">Sign in</button><button class="auth-tab" data-auth-mode="register" type="button">Create account</button></div>
+          <h2 id="auth-title">Welcome back</h2>
+          <p id="auth-description" class="muted">Sign in to open your workspace.</p>
+          <form id="auth-form">
+            <label for="auth-username">Username</label><input id="auth-username" name="username" minlength="3" maxlength="32" autocomplete="username" required>
+            <label for="auth-password">Password</label><input id="auth-password" name="password" type="password" minlength="10" maxlength="128" autocomplete="current-password" required>
+            <p id="password-hint" class="field-hint hidden">Use at least 10 characters.</p>
+            <button id="auth-submit" class="button button-primary full-width" type="submit">Sign in</button>
+          </form>
+          <p id="auth-message" class="notice hidden" role="status"></p>
+          <p class="fine-print">This demo stores accounts and saved snippets in its SQLite database. Use a unique password.</p>
         </div>
+      </section>
 
-    </form>
+      <section id="workspace-view" class="hidden">
+        <div class="hero-row">
+          <div><p class="eyebrow">YOUR PYTHON WORKSPACE</p><h1>What are you working on?</h1><p class="muted">Ask for a small example, paste code for feedback, or save work to a project.</p></div>
+          <button id="mobile-nav-toggle" class="button button-quiet mobile-menu" type="button" aria-expanded="false">Menu</button>
+        </div>
+        <nav class="workspace-nav" aria-label="Workspace sections">
+          <button class="nav-item active" data-view="assistant" type="button"><span>⌘</span> Assistant</button>
+          <button class="nav-item" data-view="projects" type="button"><span>▤</span> My projects</button>
+          <button id="admin-nav" class="nav-item hidden" data-view="admin" type="button"><span>⚙</span> Admin</button>
+        </nav>
 
-    <script>
-        function openOnlineCompiler() {
-            const code = document.getElementById('user_input').value.trim();
-            if (!code) {
-                alert("Paste Python code in the input box first.");
-                return;
-            }
-            const encoded = encodeURIComponent(code);
-            const url = `https://www.onlinegdb.com/online_python_compiler#code=${encoded}`;
-            window.open(url, '_blank');
-        }
+        <section id="assistant-panel" class="view-panel">
+          <div class="assistant-grid">
+            <section class="card composer-card">
+              <div class="section-heading"><div><p class="eyebrow">PYTHON HELPER</p><h2>Give it a task</h2></div><span class="shortcut-label">No code is executed here</span></div>
+              <label for="prompt-input" class="control-label">Prompt or Python code</label>
+              <textarea id="prompt-input" maxlength="20000" placeholder="Choose a built-in example below, or paste Python code you want reviewed..." spellcheck="false"></textarea>
+              <div class="prompt-examples" aria-label="Built-in example prompts">
+                <span>Try a built-in:</span>
+                <button class="prompt-chip" type="button" data-prompt="Generate a Fibonacci sequence">Fibonacci</button>
+                <button class="prompt-chip" type="button" data-prompt="Make a FizzBuzz program">FizzBuzz</button>
+                <button class="prompt-chip" type="button" data-prompt="Create a basic calculator">Calculator</button>
+                <button class="prompt-chip" type="button" data-prompt="Write a prime number checker">Prime checker</button>
+                <button class="prompt-chip" type="button" data-prompt="Show binary search">Binary search</button>
+                <button class="prompt-chip" type="button" data-prompt="Make a number guessing game">Guessing game</button>
+                <button class="prompt-chip" type="button" data-prompt="Create a word frequency counter">Word frequency</button>
+                <button class="prompt-chip" type="button" data-prompt="Make a Caesar cipher">Caesar cipher</button>
+              </div>
+              <div class="input-meta"><span>Be specific about what you want to learn or fix.</span><span id="char-count">0 / 20,000</span></div>
+              <div class="composer-options">
+                <label class="control-label" for="explanation-level">Explanation level</label>
+                <select id="explanation-level"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select>
+              </div>
+              <div class="model-choice">
+                <label class="switch-label" for="use-model"><input id="use-model" type="checkbox"><span class="switch"></span><span><strong>Use language model</strong><small id="model-detail">Local analysis is used by default.</small></span></label>
+                <p class="privacy-note">When enabled, your prompt or code is sent to the model provider configured by this app. Don’t send secrets or private code.</p>
+              </div>
+              <div class="action-grid">
+                <button class="button button-primary" data-action="generate" type="button">Generate code</button>
+                <button class="button" data-action="review" type="button">Review code</button>
+                <button class="button" data-action="fix" type="button">Suggest a fix</button>
+                <button class="button" data-action="error_explain" type="button">Explain an error</button>
+                <button class="button" data-action="program_explain" type="button">Explain logic</button>
+              </div>
+              <div id="assist-status" class="inline-status hidden" role="status"></div>
+            </section>
 
-        function saveOutput() {
-            const outputEl = document.querySelector('.output pre');
-            if (!outputEl) {
-                alert("There is no output to download yet. Choose an action first.");
-                return;
-            }
-            const content = outputEl.innerText;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'python_assistant_output.txt';
-            a.click();
-            URL.revokeObjectURL(a.href);
-        }
-    </script>
+            <section class="card result-card">
+              <div class="section-heading"><div><p class="eyebrow">RESULT</p><h2 id="result-title">Your result appears here</h2></div><span id="result-mode" class="result-mode hidden"></span></div>
+              <div id="empty-result" class="empty-state"><div class="empty-icon">✳</div><strong>Ready when you are</strong><p>Choose an action to get an explanation or code suggestion. Review generated code before using it.</p></div>
+              <div id="result-content" class="hidden"><div id="syntax-note" class="syntax-note hidden"></div><pre><code id="result-output"></code></pre>
+                <div class="result-actions"><button id="copy-result" class="button button-quiet" type="button">Copy</button><button id="download-result" class="button button-quiet" type="button">Download</button><button id="save-result" class="button button-primary" type="button">Save to project</button></div>
+              </div>
+            </section>
+          </div>
+          <aside class="tip-strip"><span class="tip-star">✦</span><div><strong>Useful habit</strong><p>Ask for the reason behind a suggestion, then verify important changes yourself. This tool does not run code.</p></div></aside>
+        </section>
 
-    {% if output %}
-    <section class="output" style="margin-top: 2.5rem;">
-        <h3>Assistant output</h3>
-        <pre>{{ output }}</pre>
-    </section>
-    {% endif %}
+        <section id="projects-panel" class="view-panel hidden">
+          <div class="card project-card"><div class="section-heading"><div><p class="eyebrow">YOUR WORKSPACE</p><h2>Projects and saved snippets</h2><p class="muted">Your saved code is private to your account.</p></div></div>
+            <form id="project-form" class="inline-form"><label class="sr-only" for="project-name">New project name</label><input id="project-name" maxlength="80" placeholder="e.g. Data structures practice" required><button class="button button-primary" type="submit">Create project</button></form>
+            <div id="project-list" class="project-list"><p class="muted">Loading projects…</p></div>
+          </div>
+        </section>
 
-    <footer class="footer">
-        <p>Built by Hariom Thakur</p>
-    </footer>
-
-</div>
-
+        <section id="admin-panel" class="view-panel hidden">
+          <div class="admin-heading"><div><p class="eyebrow">ADMINISTRATION</p><h2>Application overview</h2><p class="muted">Usage counts do not include prompts or source code.</p></div></div>
+          <div id="admin-metrics" class="metric-grid"></div>
+          <section class="card activity-card"><div class="section-heading"><div><p class="eyebrow">LAST 7 DAYS</p><h3>Request mix</h3></div></div><div id="admin-activity" class="table-wrap"></div></section>
+          <div class="admin-grid"><section class="card"><div class="section-heading"><div><p class="eyebrow">ACCOUNTS</p><h3>User roles</h3></div></div><div id="admin-users" class="table-wrap"></div></section>
+            <section class="card"><div class="section-heading"><div><p class="eyebrow">LOCAL GENERATOR</p><h3>Example templates</h3></div></div>
+              <form id="example-form" class="template-form"><input id="example-id" type="hidden"><label for="example-title">Title</label><input id="example-title" maxlength="100" required><label for="example-keywords">Match words <span class="muted">comma separated</span></label><input id="example-keywords" placeholder="sort, sorting" required><label for="example-description">Short description</label><input id="example-description" maxlength="300"><label for="example-code">Python example</label><textarea id="example-code" maxlength="20000" required spellcheck="false"></textarea><div class="form-actions"><button class="button button-primary" type="submit">Save template</button><button id="cancel-example-edit" class="button button-quiet hidden" type="button">Cancel edit</button></div></form>
+              <div id="example-list" class="example-list"></div>
+            </section>
+          </div>
+          <div id="admin-status" class="inline-status hidden" role="status"></div>
+        </section>
+      </section>
+    </main>
+    <footer class="footer"><span>PyGuide · Python learning workspace</span><span>Local analysis · Optional model · You stay in control</span></footer>
+  </div>
+  <dialog id="save-dialog" class="save-dialog"><form id="save-snippet-form" method="dialog"><div class="section-heading"><div><p class="eyebrow">SAVE YOUR WORK</p><h2>Choose a project</h2></div><button id="close-save-dialog" class="icon-button" type="button" aria-label="Close">×</button></div><label for="snippet-title">Snippet name</label><input id="snippet-title" maxlength="120" placeholder="A short descriptive title" required><label for="snippet-project">Project</label><select id="snippet-project" required></select><div class="form-actions"><button class="button button-primary" type="submit">Save snippet</button></div><p id="save-message" class="notice hidden" role="status"></p></form></dialog>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </body>
 </html>

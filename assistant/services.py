@@ -3,9 +3,9 @@
 from .analysis import auto_fix_code, explain_error, explain_program, review_code
 from .generation import generate_code
 
-def process_action(action, user_input, extra=""):
+def process_action(action, user_input, extra="", examples=None):
     if action == "generate":
-        return generate_code(user_input)
+        return generate_code(user_input, examples)
     elif action == "review":
         return review_code(user_input)
     elif action == "fix":

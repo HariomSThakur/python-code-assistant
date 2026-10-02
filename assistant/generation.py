@@ -1615,8 +1615,13 @@ print(f"  Octal:        {oct(num)}")
 print(f"  Hex:          {hex(num)}")"""
 
 # Enhanced keyword-based generation with extensive patterns
-def generate_code(prompt):
+def generate_code(prompt, extra_examples=None):
     p = normalize_text(prompt)
+
+    for example in extra_examples or []:
+        keywords = example.get("keywords", [])
+        if any(normalize_text(keyword) in p for keyword in keywords if keyword.strip()):
+            return example.get("code", "")
     
     # New basic examples
     if any(word in p for word in ["hello world", "print hello"]):

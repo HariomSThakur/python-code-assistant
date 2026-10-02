@@ -1,0 +1,8 @@
+[
+  {"id": "reverse-words", "prompt": "Write a function named reverse_words that reverses the order of words in a sentence while preserving each word.", "expected_function": "reverse_words"},
+  {"id": "word-count", "prompt": "Write a function named word_counts that returns a dictionary of lowercase word frequencies from a string.", "expected_function": "word_counts"},
+  {"id": "is-palindrome", "prompt": "Write a function named is_palindrome that checks whether text is a palindrome, ignoring spaces and letter case.", "expected_function": "is_palindrome"},
+  {"id": "chunk-list", "prompt": "Write a function named chunk_list that splits a list into chunks of a given positive size.", "expected_function": "chunk_list"},
+  {"id": "remove-duplicates", "prompt": "Write a function named unique_in_order that removes duplicates from a list while keeping the first occurrence order.", "expected_function": "unique_in_order"},
+  {"id": "safe-mean", "prompt": "Write a function named safe_mean that returns the arithmetic mean of numbers and handles an empty list clearly.", "expected_function": "safe_mean"}
+]
